@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "obsidian-zhtools",
+	"name": "ZH Tools",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
+	"description": "Some useless tools.",
+	"author": "zhch",
+	"authorUrl": "https://github.com/qinglangee/obsidian-zhtools",
 	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
 }
