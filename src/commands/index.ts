@@ -1,8 +1,9 @@
 import { Plugin, Editor, MarkdownView } from "obsidian";
-import { mergeDoubleNewLines } from "./my-command";
+import { mergeDoubleNewLines, removeLinks } from "./my-command";
 import { SampleModal } from "src/modal/sample_modal";
 
-import { fun } from "../types";
+import { fun, editorFun } from "../types";
+import { parseFunctionName } from "../utils/string_utils";
 
 function command(id: string, name: string, callback: fun) {
 	return { id, name, callback };
@@ -10,24 +11,45 @@ function command(id: string, name: string, callback: fun) {
 function cmd(plugin: Plugin, id: string, name: string, callback: fun) {
 	plugin.addCommand(command(id, name, callback));
 }
-export function registerCommands(plugin: Plugin) {
+// 把函数名解析出 id, name, 再添加
+function editorCmd(plugin: Plugin, callback: editorFun) {
+	const { kebab, title } = parseFunctionName(callback);
+	editorCmdFull(plugin, kebab, title, callback);
+}
+// 把 name 转换成 id, 再添加
+function editorCmd2(plugin: Plugin, name: string, callback: editorFun) {
+	const id = name
+		.split(" ")
+		.map((s) => s.toLowerCase)
+		.join("-");
+	editorCmdFull(plugin, id, name, callback);
+}
+function editorCmdFull(
+	plugin: Plugin,
+	id: string,
+	name: string,
+	callback: editorFun,
+) {
 	plugin.addCommand({
-		id: "merge-double-newlines",
-		name: "Merge Double Newlines",
+		id,
+		name,
 		editorCallback: (editor: Editor) => {
-			mergeDoubleNewLines(editor);
+			callback(editor);
 		},
 	});
+}
+export function registerCommands(plugin: Plugin) {
+	editorCmd2(plugin, "Merge Double Lines", mergeDoubleNewLines);
+	editorCmd(plugin, removeLinks);
 
+	registerCommandsDemo(plugin);
+}
+
+export function registerCommandsDemo(plugin: Plugin) {
 	// This adds a simple command that can be triggered anywhere
-	cmd(
-		plugin,
-		"open-sample-modal-simple",
-		"Open sample modal (simple)22",
-		() => {
-			new SampleModal(plugin.app).open();
-		},
-	);
+	cmd(plugin, "open-modal", "Open modal", () => {
+		new SampleModal(plugin.app).open();
+	});
 	// This adds an editor command that can perform some operation on the current editor instance
 	plugin.addCommand({
 		id: "sample-editor-command",
@@ -58,5 +80,3 @@ export function registerCommands(plugin: Plugin) {
 		},
 	});
 }
-
-export function registerIcons(plugin: Plugin) {}
