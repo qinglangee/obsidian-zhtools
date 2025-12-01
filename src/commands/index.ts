@@ -1,9 +1,9 @@
 import { Plugin, Editor, MarkdownView } from "obsidian";
-import { mergeDoubleNewLines, removeLinks } from "./my-command";
 import { SampleModal } from "src/modal/sample_modal";
 
 import { fun, editorFun } from "../types";
 import { parseFunctionName } from "../utils/string_utils";
+import { mergeDoubleNewLines, removeLinks, copyLink } from "./my-command";
 
 function command(id: string, name: string, callback: fun) {
 	return { id, name, callback };
@@ -41,6 +41,7 @@ function editorCmdFull(
 export function registerCommands(plugin: Plugin) {
 	editorCmd2(plugin, "Merge Double Lines", mergeDoubleNewLines);
 	editorCmd(plugin, removeLinks);
+	editorCmd(plugin, copyLink);
 
 	registerCommandsDemo(plugin);
 }
