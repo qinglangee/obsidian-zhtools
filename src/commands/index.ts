@@ -3,7 +3,13 @@ import { SampleModal } from "src/modal/sample_modal";
 
 import { fun, editorFun } from "../types";
 import { parseFunctionName } from "../utils/string_utils";
-import { mergeDoubleNewLines, removeLinks, copyLink } from "./my-command";
+import { mergeDoubleNewLines, removeLinks } from "./edit_command";
+import {
+	copyLink,
+	copySubText,
+	copySubTextWithoutHeader,
+} from "./copy_command";
+import { addLevel, minusLevel } from "./outline_commands";
 
 function command(id: string, name: string, callback: fun) {
 	return { id, name, callback };
@@ -42,6 +48,10 @@ export function registerCommands(plugin: Plugin) {
 	editorCmd2(plugin, "Merge Double Lines", mergeDoubleNewLines);
 	editorCmd(plugin, removeLinks);
 	editorCmd(plugin, copyLink);
+	editorCmd(plugin, copySubText);
+	editorCmd(plugin, copySubTextWithoutHeader);
+	editorCmd(plugin, addLevel);
+	editorCmd(plugin, minusLevel);
 
 	registerCommandsDemo(plugin);
 }

@@ -1,40 +1,5 @@
 import { Editor, Notice } from "obsidian";
-
-/**
- * 如果选中了内容就替换选中的内容， 没有选中就替换全部的内容
- * @param editor
- * @param replaceFun 替换函数， 把内容进行转换
- */
-function replaceContent(editor: Editor, replaceFun: (e: string) => string) {
-	let content = editor.getSelection();
-	const hasSelection = content.length > 0;
-	if (hasSelection) {
-		const replaced = replaceFun(content); // 两个 newlines 替换为一个
-		editor.replaceSelection(replaced);
-	} else {
-		content = editor.getValue(); // 取得全文
-		const replaced = replaceFun(content); // 两个 newlines 替换为一个
-		editor.setValue(replaced); // 设置全文
-	}
-}
-
-/**
- * 把编辑器的连续两个换行全部换成一个换行
- */
-export function mergeDoubleNewLines(editor: Editor) {
-	replaceContent(editor, (text) => text.replace(/\n\n/g, "\n"));
-}
-
-/**
- * 删除 markdown 中的所有 [text](url) 形式的链接
- * @param editor
- */
-export function removeLinks(editor: Editor) {
-	replaceContent(editor, (text) =>
-		text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1"),
-	);
-}
-
+import { getHeaderRange } from "src/utils/editor_utils";
 /**
  * 从光标所在处向两边查找完整的 url 链接地址
  * 如果找到，复制地址，如果找不到，什么也没做
@@ -75,7 +40,7 @@ export function copyLink(editor: Editor) {
 				// 向前找到完整的 Markdown 链接
 				const markdownLinkMatch = line
 					.slice(0, endPos)
-					.match(/\[([^\]]+)\]\(([^\)]+)\)$/);
+					.match(/\[([^\]]+)\]\(([^)]+)\)$/);
 				if (markdownLinkMatch) {
 					foundUrl = markdownLinkMatch[2];
 				}
@@ -111,4 +76,46 @@ export function copyLink(editor: Editor) {
 				console.error("复制失败:", err);
 			});
 	}
+}
+
+/**
+ * 选择并复制从 start 行到 end 行的内容
+ * @param editor
+ * @param start
+ * @param end
+ */
+async function selectAndCopy(editor: Editor, start: number, end: number) {
+	const lines = editor.getValue().split("\n");
+	const from = { line: start, ch: 0 };
+	const to = { line: end, ch: lines[end].length };
+
+	editor.setSelection(from, to);
+	const text = editor.getRange(from, to);
+
+	await navigator.clipboard.writeText(text);
+}
+
+/**
+ * 复制标题+子内容（包含标题）
+ */
+export async function copySubText(editor: Editor) {
+	const result = getHeaderRange(editor);
+	if (!result) return;
+
+	const { headerLine, endLine } = result;
+	selectAndCopy(editor, headerLine, endLine);
+}
+
+/**
+ * 复制标题下的内容（❌不包含标题本身）
+ */
+export async function copySubTextWithoutHeader(editor: Editor) {
+	const result = getHeaderRange(editor);
+	if (!result) return;
+
+	const { headerLine, endLine } = result;
+
+	// 如果标题没有子内容，就什么都不选
+	if (headerLine === endLine) return;
+	selectAndCopy(editor, headerLine + 1, endLine);
 }
